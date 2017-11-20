@@ -1,0 +1,104 @@
+﻿<link rel="import" href="../polymer/polymer.html" />
+<link rel="import" href="../paper-button/paper-button.html" />
+<link rel="import" href="../paper-input/paper-input-container.html" />
+<link rel="import" href="../paper-input/paper-input-error.html" />
+<link rel="import" href="../iron-ajax/iron-ajax.html" />
+<link rel="import" href="../iron-icon/iron-icon.html" />
+<link rel="import" href="../iron-icons/iron-icons.html" />
+<link rel="import" href="../iron-input/iron-input.html" />
+<link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html" />
+<!--
+`<lithium-quote>` is an awesome element.
+
+Example:
+
+        <xenon-file-input auto label="Upload Logo" upload-url="/api/files"></xenon-file-input>
+
+### Styling
+    No styling
+
+@element xenon-file-input
+@demo demo/index.html
+-->
+<dom-module id="xenon-file-input">
+    <template>
+        <iron-ajax id="ajax"
+                   method="post"
+                   url="[[uploadUrl]]"
+                   last-response="{{response}}"
+                   last-error="{{error}}"
+                   loading="{{loading}}">
+        </iron-ajax>
+        <input is="iron-input" on-change="_upload" id="xinput" name="xinput" type="file" required hidden />
+
+        <div>
+            <paper-input on-tap="open" id="input" on-click="_openExplorer" allowed-pattern="[[allowedPattern]]" prevent-invalid-input label="[[label]]" required$="{{required}}" error-message="{{errorMessage}}">
+                <iron-icon icon="arrow-drop-down" suffix></iron-icon>
+            </paper-input>
+            <div><paper-input-error id="error">[[errorMessage]]</paper-input-error></div>
+        </div>
+        
+    </template>
+    <script>
+        Polymer({
+            is: "xenon-file-input",
+            properties: {
+                /* this property has a comment description */
+                response: { type: Object, notify: true, observer: "_onResponseChanged" },
+                /* this property has a comment description */
+                uploadUrl: { type: String, notify: true },
+                /* this property has a comment description */
+                label: { type: String, notify: true, value:"Upload File" },
+                /* this property has a comment description */
+                errorMessage: { type: String, notify: true, value:"Please upload a file" },
+                /* this property has a comment description */
+                required: { type: Boolean, notify: true, value: false },
+                /* this property has a comment description */
+                loading: { type: Boolean, notify: true, value: false },
+                /* this property has a comment description */
+                auto: { type: Boolean, notify: true, value: false, reflectToAttribute: true },
+                /* this property has a comment description */
+                error: { type: Object, notify: true, observer: "_onErrorChanged" },
+                /* this property has a comment description */
+                file: { type: Object, notify: true },
+                style: { type:String }
+            },
+            behaviors: [
+                Polymer.IronFormElementBehavior
+            ],
+            _onErrorChanged: function (err) {
+                if (err === undefined || err === null) return;
+                if (Object.getOwnPropertyNames(err).length == 0) return;
+                this.fire("xenon-file-upload-error", err);
+            },
+            _openExplorer: function (e) {
+                this.$.xinput.click();
+            },
+            _upload: function (e, detail, sender) {
+                var file = this.$.xinput.files[0];
+                this.set("file", file);
+                this.$.input.value = file.name;
+                if (!this.auto) return;
+                this.upload();
+            },
+            _onResponseChanged: function (resp) {
+                if (resp === undefined || resp === null) return;
+                this.fire("xenon-file-uploaded", resp);
+            },
+            upload: function () {
+                var formData = new FormData();
+                formData.append("xinput", this.file, this.file.name);
+                this.$.ajax.body = formData;
+                this.$.ajax.generateRequest();
+            },
+            validate: function () {
+                var valid = this.$.xinput.validate();
+                if(!valid)
+                    Polymer.dom(this.$.error).setAttribute("invalid", true)
+                else
+                    Polymer.dom(this.$.error).removeAttribute("invalid")
+                return valid;
+            }
+        });
+    </script>
+</dom-module>

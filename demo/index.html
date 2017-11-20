@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+    <script src="../../webcomponentsjs/webcomponents.min.js"></script>
+    <link rel="import" href="../xenon-file-input.html" />
+    <link rel="import" href="../../paper-toast/paper-toast.html" />
+    <link rel="import" href="../../paper-progress/paper-progress.html" />
+</head>
+<body>
+    <dom-module id="file-demo">
+        <template>
+            <xenon-file-input label="Upload File" upload-url="/api/orgs/uploadlogo" loading="{{loading}}"></xenon-file-input>
+            <paper-progress hidden="[[!loading]]" style="width:100%;" indeterminate></paper-progress>
+            <paper-toast id="toast"></paper-toast>
+        </template>
+        <script>
+		Polymer({
+			is:"file-demo",
+			listeners: {
+			    "xenon-file-uploaded": "_onFileUploaded",
+                "xenon-file-upload-error":"_onFileUploadError"
+            },
+			_onFileUploaded: function (e) {
+			    console.log("file-uploaded", e.detail);
+			    this.$.toast.text = e.detail.statusText;
+			    this.$.toast.show();
+			},
+			_onFileUploadError: function (e) {
+			    console.log("file-upload-error", e.detail);
+                
+			    this.$.toast.text = e.detail.statusText;
+			    this.$.toast.show();
+			}
+		});
+        </script>
+    </dom-module>
+    <file-demo></file-demo>
+</body>
+</html>
